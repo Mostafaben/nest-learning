@@ -1,6 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { Item, Resource } from '@prisma/client';
-import { get } from 'http';
 import { PathDto } from './item.dto';
 import { TreeService } from './tree.service';
 
@@ -36,15 +42,15 @@ export class TreeController {
   }
 
   @Get(':id')
-  getLevel(@Param('id') parentId: number | null): Promise<Array<any>> {
-    return this.treeService.getByLevel(Number(parentId));
+  getLevel(@Param('id', ParseIntPipe) parentId: number): Promise<Array<any>> {
+    return this.treeService.getByLevel(parentId);
   }
 
   @Post(':id/resource')
   addResource(
-    @Param('id') activityId: number,
+    @Param('id', ParseIntPipe) activityId: number,
     @Body('url') url: string,
   ): Promise<Resource> {
-    return this.treeService.createResource(Number(activityId), url);
+    return this.treeService.createResource(activityId, url);
   }
 }

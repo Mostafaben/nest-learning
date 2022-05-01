@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { User as UserModel } from '@prisma/client';
 import { UserService } from './user.service';
 
@@ -14,8 +21,10 @@ export class UserController {
   }
 
   @Get(':id')
-  async getUser(@Param('id') id: number): Promise<UserModel | null> {
-    return this.userService.user({ id: Number(id) });
+  async getUser(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<UserModel | null> {
+    return this.userService.user({ id });
   }
 
   @Get()

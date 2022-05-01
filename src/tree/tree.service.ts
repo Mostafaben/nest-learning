@@ -44,9 +44,8 @@ export class TreeService {
   }
 
   async getDetailedTree(parentId: number | null = null) {
-    const items: Array<any> = await this.getByLevel(parentId);
     return Promise.all(
-      items.map(async (item) => {
+      (await this.getByLevel(parentId)).map(async (item: any) => {
         if (item.type == ItemType.PATH) {
           item = {
             ...item,
