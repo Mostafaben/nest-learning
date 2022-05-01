@@ -5,9 +5,10 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  ValidationPipe,
 } from '@nestjs/common';
 import { Item, Resource } from '@prisma/client';
-import { PathDto } from './item.dto';
+import { PathDto, ResourceDto } from './item.dto';
 import { TreeService } from './tree.service';
 
 @Controller('tree')
@@ -27,7 +28,7 @@ export class TreeController {
   }
 
   @Post('path')
-  createPath(@Body() pathDto: PathDto): Promise<Item> {
+  createPath(@Body(new ValidationPipe()) pathDto: PathDto): Promise<Item> {
     return this.treeService.createPath(pathDto);
   }
 
@@ -49,8 +50,11 @@ export class TreeController {
   @Post(':id/resource')
   addResource(
     @Param('id', ParseIntPipe) activityId: number,
-    @Body('url') url: string,
+    @Body(new ValidationPipe()) { url }: ResourceDto,
   ): Promise<Resource> {
-    return this.treeService.createResource(activityId, url);
+    return this.treeService.createResource({
+      url,
+      activityId,
+    });
   }
 }

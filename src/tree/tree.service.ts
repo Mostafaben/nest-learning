@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Item, ItemType, Resource } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ActivityDto, PathDto } from './item.dto';
+import { ActivityDto, PathDto, ResourceDto } from './item.dto';
 
 @Injectable()
 export class TreeService {
   constructor(private prismaService: PrismaService) {}
 
-  createPath(itemDto: PathDto): Promise<Item> {
+  createPath({ title, parentId }: PathDto): Promise<Item> {
     return this.prismaService.item.create({
-      data: itemDto,
+      data: {
+        title,
+        parentId,
+      },
     });
   }
 
@@ -58,7 +61,7 @@ export class TreeService {
     );
   }
 
-  createResource(activityId: number, url: string): Promise<Resource> {
+  createResource({ url, activityId }: ResourceDto): Promise<Resource> {
     return this.prismaService.resource.create({
       data: {
         url,
