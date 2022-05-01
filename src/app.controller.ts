@@ -38,12 +38,25 @@ export class AppController {
       where: {
         OR: [
           {
-            title: { contains: searchString },
+            title: {
+              startsWith: searchString,
+            },
           },
           {
-            content: { contains: searchString },
+            author: {
+              OR: [
+                {
+                  email: {
+                    contains: searchString,
+                  },
+                },
+              ],
+            },
           },
         ],
+      },
+      orderBy: {
+        id: 'asc',
       },
     });
   }
