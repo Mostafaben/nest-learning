@@ -53,14 +53,16 @@ export class PostController {
   }
   @Post()
   async createDraft(
-    @Body() postData: { title: string; content?: string; authorEmail: string },
+    @Body() postData: Pick<PostModel, 'authorId' | 'content' | 'title'>,
   ): Promise<PostModel> {
-    const { title, content, authorEmail } = postData;
+    const { title, content, authorId } = postData;
     return this.postService.createPost({
       title,
       content,
       author: {
-        connect: { email: authorEmail },
+        connect: {
+          id: authorId,
+        },
       },
     });
   }

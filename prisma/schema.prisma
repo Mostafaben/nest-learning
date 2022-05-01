@@ -24,4 +24,35 @@ model Post {
   published Boolean? @default(false)
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  Int?
+  createdAt DateTime @default(now())
+}
+
+model Item {
+  id       Int       @id @default(autoincrement())
+  title    String
+  activity Activity?
+  type     ItemType  @default(PATH)
+  parent   Item?     @relation("children", fields: [parentId], references: [id])
+  children Item[]    @relation("children")
+  parentId Int?
+}
+
+model Activity {
+  id       Int        @id @default(autoincrement())
+  coef     Int
+  item     Item       @relation(fields: [itemId], references: [id])
+  itemId   Int        @unique
+  Resource Resource[]
+}
+
+model Resource {
+  id         Int      @id @default(autoincrement())
+  url        String   @unique
+  activityId Int
+  activity   Activity @relation(fields: [activityId], references: [id])
+}
+
+enum ItemType {
+  ACTIVITY
+  PATH
 }
