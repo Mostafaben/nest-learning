@@ -5,26 +5,40 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  ValidationPipe,
 } from '@nestjs/common';
 import { User as UserModel } from '@prisma/client';
+import { TokenService } from './token.service';
+import UserDto from './user.dto';
 import { UserService } from './user.service';
 
+export type SignUpResponse = {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+};
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private tokenService: TokenService,
+  ) {}
 
-  @Post()
+  @Post('sign-up')
   async signUp(
-    @Body() userDto: Pick<UserModel, 'name' | 'email'>,
-  ): Promise<UserModel> {
-    return this.userService.createUser(userDto);
+    @Body(new ValidationPipe()) userDto: UserDto,
+  ): Promise<SignUpResponse> {
+    return this.tokenService.generateTokens(
+      await this.userService.createUser(userDto),
+    );
   }
 
-  @Get(':id')
-  async getUser(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<UserModel | null> {
-    return this.userService.user({ id });
+  @Post('login')
+  getUser(
+    @Body(new ValidationPipe())
+    credentials: Pick<UserDto, 'email' | 'password'>,
+  ): Promise<string> {
+    return this.userService.login(credentials);
   }
 
   @Get()

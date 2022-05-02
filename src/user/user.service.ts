@@ -1,17 +1,36 @@
-import { Injectable } from '@nestjs/common';
-import { User, Prisma } from '@prisma/client';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { User as UserModel, Prisma } from '@prisma/client';
+import { compareSync } from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PasswordManagementService } from './password-management.service';
+import { TokenService } from './token.service';
+import UserDto from './user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private passwordManagementService: PasswordManagementService,
+    private tokenService: TokenService,
+  ) {}
 
-  async user(
-    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: userWhereUniqueInput,
+  async login({
+    email,
+    password,
+  }: Pick<UserDto, 'email' | 'password'>): Promise<string> {
+    const user: UserModel = await this.prisma.user.findUnique({
+      where: { email },
     });
+    if (!user) throw new NotFoundException({ message: 'user was not found' });
+    if (!compareSync(password, user.password))
+      throw new ForbiddenException({
+        message: 'email or password does not match',
+      });
+    return this.tokenService.generateAccessToken(user.email, user.id);
   }
 
   async users(params: {
@@ -20,7 +39,7 @@ export class UserService {
     cursor?: Prisma.UserWhereUniqueInput;
     where?: Prisma.UserWhereInput;
     orderBy?: Prisma.UserOrderByWithRelationInput;
-  }): Promise<User[]> {
+  }): Promise<UserModel[]> {
     const { skip, take, cursor, where, orderBy } = params;
     return this.prisma.user.findMany({
       skip,
@@ -31,16 +50,20 @@ export class UserService {
     });
   }
 
-  async createUser(data: Prisma.UserCreateInput): Promise<User> {
+  createUser({ password, email, name }: UserDto): Promise<UserModel> {
     return this.prisma.user.create({
-      data,
+      data: {
+        email,
+        name,
+        password: this.passwordManagementService.hashPassword(password),
+      },
     });
   }
 
-  async updateUser(params: {
+  updateUser(params: {
     where: Prisma.UserWhereUniqueInput;
     data: Prisma.UserUpdateInput;
-  }): Promise<User> {
+  }): Promise<UserModel> {
     const { where, data } = params;
     return this.prisma.user.update({
       data,
@@ -48,7 +71,7 @@ export class UserService {
     });
   }
 
-  async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
+  deleteUser(where: Prisma.UserWhereUniqueInput): Promise<UserModel> {
     return this.prisma.user.delete({
       where,
     });
