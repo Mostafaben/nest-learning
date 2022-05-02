@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, ValidationPipe } from '@nestjs/common';
 import { User as UserModel } from '@prisma/client';
 import { TokenService } from './token.service';
 import UserDto from './user.dto';
@@ -37,7 +29,7 @@ export class UserController {
   getUser(
     @Body(new ValidationPipe())
     credentials: Pick<UserDto, 'email' | 'password'>,
-  ): Promise<string> {
+  ): Promise<{ accessToken: string }> {
     return this.userService.login(credentials);
   }
 

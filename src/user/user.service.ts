@@ -21,7 +21,7 @@ export class UserService {
   async login({
     email,
     password,
-  }: Pick<UserDto, 'email' | 'password'>): Promise<string> {
+  }: Pick<UserDto, 'email' | 'password'>): Promise<{ accessToken: string }> {
     const user: UserModel = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -30,7 +30,9 @@ export class UserService {
       throw new ForbiddenException({
         message: 'email or password does not match',
       });
-    return this.tokenService.generateAccessToken(user.email, user.id);
+    return {
+      accessToken: this.tokenService.generateAccessToken(user.email, user.id),
+    };
   }
 
   async users(params: {
@@ -74,6 +76,17 @@ export class UserService {
   deleteUser(where: Prisma.UserWhereUniqueInput): Promise<UserModel> {
     return this.prisma.user.delete({
       where,
+    });
+  }
+
+  getUserById(where: Prisma.UserWhereUniqueInput) {
+    return this.prisma.user.findUnique({
+      where,
+      select: {
+        email: true,
+        password: false,
+        id: true,
+      },
     });
   }
 }

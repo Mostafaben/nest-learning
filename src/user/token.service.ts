@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { SignUpResponse } from './user.controller';
-import { User as UserModel } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
+import { User as UserModel } from '@prisma/client';
+import { SignUpResponse } from './user.controller';
+
+export type jwtPayload = {
+  email: string;
+  id: number;
+  exp?: number;
+  iat?: number;
+};
 
 @Injectable()
 export class TokenService {
@@ -34,5 +41,9 @@ export class TokenService {
       },
       { secret: this._REFRESH_KEY },
     );
+  }
+
+  validateToken(token: string): jwtPayload | null {
+    return this.jwtService.verify(token, { secret: this._KEY });
   }
 }

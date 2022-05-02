@@ -5,13 +5,16 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { Item, Resource } from '@prisma/client';
+import { AuthGuard } from 'src/guards/auth.guard';
 import { PathDto, ResourceDto } from './item.dto';
 import { TreeService } from './tree.service';
 
 @Controller('tree')
+@UseGuards(AuthGuard)
 export class TreeController {
   constructor(private treeService: TreeService) {}
 
@@ -33,12 +36,12 @@ export class TreeController {
   }
 
   @Get('detailed')
-  getTree(): Promise<Array<any>> {
+  getTree(): Promise<any[]> {
     return this.treeService.getDetailedTree();
   }
 
   @Get()
-  getFirstLevel(): Promise<Array<any>> {
+  getFirstLevel(): Promise<any[]> {
     return this.treeService.getByLevel();
   }
 
